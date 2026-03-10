@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 :: -------------------------------------------------------
-:: ANSYSEM_ROOTxxx の中で xxx が最大のものを取得
+:: Find the ANSYSEM_ROOTxxx variable with the highest version number
 :: -------------------------------------------------------
 set "MAX_VER=0"
 set "ANSYSEM_PATH="
@@ -17,13 +17,13 @@ for /f "tokens=1* delims==" %%A in ('set ANSYSEM_ROOT 2^>nul') do (
 )
 
 if not defined ANSYSEM_PATH (
-    echo [ERROR] ANSYSEM_ROOT が見つかりません。ANSYS Electronics Desktop をインストールしてください。
+    echo [ERROR] ANSYSEM_ROOT not found. Please install ANSYS Electronics Desktop.
     pause
     exit /b 1
 )
 
 if %MAX_VER% LSS 232 (
-    echo [ERROR]: ANSYSEM_ROOT%MAX_VER% は対象外のバージョンです。v232 以上が必要です。
+    echo [ERROR]: ANSYSEM_ROOT%MAX_VER% is not a supported version. Version v232 or later is required.
     pause
     exit /b 1
 )
@@ -31,12 +31,12 @@ if %MAX_VER% LSS 232 (
 echo [INFO]: ANSYSEM_ROOT%MAX_VER% = %ANSYSEM_PATH%
 
 :: -------------------------------------------------------
-:: 検出した ANSYS 付属 Python で venv を作成
+:: Create a venv using the Python bundled with the detected ANSYS installation
 :: -------------------------------------------------------
 set "ANSYS_PYTHON=%ANSYSEM_PATH%\commonfiles\CPython\3_10\winx64\Release\python\python.exe"
 
 if not exist "%ANSYS_PYTHON%" (
-    echo [ERROR]: Python が見つかりません: %ANSYS_PYTHON%
+    echo [ERROR]: Python not found: %ANSYS_PYTHON%
     pause
     exit /b 1
 )
@@ -46,17 +46,17 @@ if not exist "%APPDATA%\.pyaedt_env" (
 )
 cd /d "%APPDATA%\.pyaedt_env"
 if exist ".\3_10" (
-    echo [INFO]: 既存の仮想環境を削除しています...
+    echo [INFO]: Removing existing virtual environment...
     rmdir /s /q ".\3_10"
 )
-echo [INFO]: 仮想環境を作成しています...
+echo [INFO]: Creating virtual environment...
 "%ANSYS_PYTHON%" -m venv .\3_10
 call .\3_10\Scripts\activate.bat
 
-echo [INFO]: pyaedt環境を作成しています...
+echo [INFO]: Setting up pyaedt environment...
 pip --default-timeout=1000 install uv
 uv pip install --upgrade pip
 uv pip install wheel
 uv pip install pyaedt[all]
 
-echo [INFO]: pyaedt環境のセットアップが完了しました。
+echo [INFO]: pyaedt environment setup completed.

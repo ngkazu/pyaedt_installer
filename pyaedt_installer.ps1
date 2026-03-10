@@ -1,5 +1,5 @@
 # -------------------------------------------------------
-# ANSYSEM_ROOTxxx の中で xxx が最大のものを取得
+# Find the ANSYSEM_ROOTxxx variable with the highest version number
 # -------------------------------------------------------
 $maxVer = 0
 $ansysemPath = $null
@@ -13,27 +13,27 @@ Get-ChildItem Env: | Where-Object { $_.Name -match '^ANSYSEM_ROOT(\d+)$' } | For
 }
 
 if (-not $ansysemPath) {
-    Write-Host "[ERROR]: ANSYSEM_ROOT が見つかりません。ANSYS Electronics Desktop をインストールしてください。" -ForegroundColor Red
-    Read-Host "続行するには Enter を押してください"
+    Write-Host "[ERROR]: ANSYSEM_ROOT not found. Please install ANSYS Electronics Desktop." -ForegroundColor Red
+    Read-Host "Press Enter to continue"
     exit 1
 }
 
 if ($maxVer -lt 232) {
-    Write-Host "[ERROR]: ANSYSEM_ROOT$maxVer は対象外のバージョンです。v232 以上が必要です。" -ForegroundColor Red
-    Read-Host "続行するには Enter を押してください"
+    Write-Host "[ERROR]: ANSYSEM_ROOT$maxVer is not a supported version. Version v232 or later is required." -ForegroundColor Red
+    Read-Host "Press Enter to continue"
     exit 1
 }
 
 Write-Host "[INFO]: ANSYSEM_ROOT$maxVer = $ansysemPath" -ForegroundColor Cyan
 
 # -------------------------------------------------------
-# 検出した ANSYS 付属 Python で venv を作成
+# Create a venv using the Python bundled with the detected ANSYS installation
 # -------------------------------------------------------
 $ansysPython = Join-Path $ansysemPath "commonfiles\CPython\3_10\winx64\Release\python\python.exe"
 
 if (-not (Test-Path $ansysPython)) {
-    Write-Host "[ERROR]: Python が見つかりません: $ansysPython" -ForegroundColor Red
-    Read-Host "続行するには Enter を押してください"
+    Write-Host "[ERROR]: Python not found: $ansysPython" -ForegroundColor Red
+    Read-Host "Press Enter to continue"
     exit 1
 }
 
@@ -45,20 +45,20 @@ if (-not (Test-Path $venvRoot)) {
 }
 
 if (Test-Path $venvDir) {
-    Write-Host "[INFO]: 既存の仮想環境を削除しています..." -ForegroundColor Yellow
+    Write-Host "[INFO]: Removing existing virtual environment..." -ForegroundColor Yellow
     Remove-Item -Recurse -Force $venvDir
 }
 
-Write-Host "[INFO]: 仮想環境を作成しています..." -ForegroundColor Cyan
+Write-Host "[INFO]: Creating virtual environment..." -ForegroundColor Cyan
 & $ansysPython -m venv $venvDir
 
 $activateScript = Join-Path $venvDir "Scripts\Activate.ps1"
 . $activateScript
 
-Write-Host "[INFO]: pyaedt 環境を作成しています..." -ForegroundColor Cyan
+Write-Host "[INFO]: Setting up pyaedt environment..." -ForegroundColor Cyan
 pip --default-timeout=1000 install uv
 uv pip install --upgrade pip
 uv pip install wheel
 uv pip install pyaedt[all]
 
-Write-Host "[INFO]: pyaedt 環境のセットアップが完了しました。" -ForegroundColor Green
+Write-Host "[INFO]: pyaedt environment setup completed." -ForegroundColor Green
